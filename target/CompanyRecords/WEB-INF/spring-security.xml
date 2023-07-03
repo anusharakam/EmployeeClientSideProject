@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xsi:schemaLocation="http://www.springframework.org/schema/security
+      http://www.springframework.org/schema/security/spring-security-5.7.xsd
+      http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans-4.1.xsd ">
+
+    <http auto-config='true'>
+        <csrf disabled="true"/>
+        <intercept-url pattern="/getById/{employeeId}" access="hasAnyRole('ROLE_USER','ROLE_ADMIN')" />
+        <intercept-url pattern="/viewAll" access="hasAnyRole('ROLE_ADMIN','ROLE_USER')"/>
+        <intercept-url pattern="/editEmployee/{employeeId}" access="hasAnyRole('ROLE_ADMIN')"/>
+        <intercept-url pattern="/deleteEmployee/{employeeId}" access="hasRole('ROLE_ADMIN')"/>
+
+        <form-login login-page="/login"
+                    authentication-success-handler-ref="customSuccessHandler2"
+                    authentication-failure-url="/loginError"
+                    username-parameter="userName"
+                    password-parameter="password"/>
+        <logout logout-url="/logout" logout-success-url="/logOut"
+                invalidate-session="true"/>
+        <access-denied-handler error-page="/accessDenied"/>
+    </http>
+    <authentication-manager>
+        <authentication-provider>
+            <password-encoder hash="bcrypt"/>
+            <jdbc-user-service data-source-ref="data"
+                               users-by-username-query="select userName,password,1 from security where userName=?"
+                               authorities-by-username-query="select userName,role from security where userName=?"
+            />
+        </authentication-provider>
+    </authentication-manager>
+    <beans:bean id="customSuccessHandler2" class="companyDetails.handler.CustomSuccessHandler"/>
+    <beans:import resource="spring-servlet.xml"/>
+    <beans:import resource="applicationContext.xml"/>
+</beans:beans>
+
+
